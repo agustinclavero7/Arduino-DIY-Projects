@@ -4,22 +4,23 @@
 #define SMOTOR1_PIN 3
 #define SMOTOR2_PIN 4
 
-#define LCD_RS A5
-#define LCD_E  A4
-#define LCD_D4 22
-#define LCD_D5 24
-#define LCD_D6 26
-#define LCD_D7 28
+#define LCD_RS 53
+#define LCD_E  51
+#define LCD_D4 49
+#define LCD_D5 47
+#define LCD_D6 45
+#define LCD_D7 43
 
-#define LED_PIN A2
+#define LED_PIN A15
 
-#define OK_BUTTON   A0
-#define ADJUST_PIN  A1
+#define ADJUST_PIN  A0
+#define OK_BUTTON   A1
 #define CALIBRATION_PIN 2
+#define POTE_FILTER 30
 
-#define NUMBER_OF_SAMPLES 3
+#define NUMBER_OF_SAMPLES 5
 
-Servo sMotor1;
+//Servo sMotor1;
 Servo sMotor2;
 
 LiquidCrystal lcd(LCD_RS,LCD_E,LCD_D4,
@@ -35,14 +36,13 @@ int endPos = 120;
 
 //Adjust settings
 unsigned long debounceTimeStart = millis();
-unsigned long debounceDelay = 100;
-int configBpm = (60 /servoDelay) * 1000;
-int prevPoteValue = analogRead(ADJUST_PIN);
-int actualPoteValue = prevPoteValue;
-bool bpmchangeflag = false;
+unsigned long debounceDelay = 50;
+int prevPoteValue;
+int actualPoteValue;
+bool bpmChangeFlag = false;
 
 //LCD
-double monitorBpmArray[NUMBER_OF_SAMPLES] ={12,12,12};
+double monitorBpmArray[NUMBER_OF_SAMPLES] ={12};
  
 //LED
 unsigned long ledTimerStart = millis();
@@ -55,45 +55,47 @@ volatile bool firstOrSecondParameter = false;
 
 void servoMove(){
   if(oneWay){
-    for(int i = initialPos; i <= endPos; i+= step){
-      sMotor1.write(i);
+    for(int i = initialPos; i < endPos; i+= step){
+      //sMotor1.write(i);
       sMotor2.write(i);
-      delay(5);    
+      delayMicroseconds(3);    
     }
     oneWay = false;
   }
   else{
-    for(int i = endPos; i >= initialPos; i-= step){
-      sMotor1.write(i);
+    for(int i = endPos; i > initialPos; i-= step){
+      //sMotor1.write(i);
       sMotor2.write(i);
-      delay(5);
+      delayMicroseconds(3);
     }
     oneWay = true;
   }
 }
 
 void showBpmOnLcd(){
-  double bpm = 0;
+  double sumOfSamples = 0;
   for (int i = 0; i < NUMBER_OF_SAMPLES; i++){
-    bpm += monitorBpmArray[i]; 
+    sumOfSamples += monitorBpmArray[i]; 
   }
-  bpm = bpm / 3;
+  double bpm = sumOfSamples / NUMBER_OF_SAMPLES;
   lcd.setCursor(0,0);
   lcd.print(bpm);
-  lcd.print(" bpm");
+  lcd.print(" bpm.             ");
 }
 
 void changeBreathRate(int poteValue){
-  if(bpmchangeflag){
-    int configuration = 5 + poteValue / 4;
+  if(bpmChangeFlag){
+    int configuration = 5 + poteValue / 20;
     lcd.setCursor(0,1);
     lcd.print(configuration);
+    lcd.print("    ");
     if (digitalRead(OK_BUTTON) == HIGH){
-      configBpm = configuration;
-      servoDelay = (60.0 / configBpm)*1000;
+      servoDelay = (60.0 / configuration)*1000;
+      // Serial.println(servoDelay);
+      // Serial.println(configuration);
       ledDelay = servoDelay / 10;
       prevPoteValue = poteValue;
-      bpmchangeflag = false;
+      bpmChangeFlag = false;
       lcd.setCursor(0,1);
       lcd.print("                            ");
     }
@@ -117,16 +119,16 @@ void calibrationInterrupt(){
 void calibrationRoutine(){
   lcd.setCursor(0,0);
   lcd.print("Cal Screen             ");
-  if (firstOrSecondParameter == false){
+  if (firstOrSecondParameter){
     lcd.setCursor(0,1);
     lcd.print("Input start pos. ");
     if (Serial.available() > 0){
       int input = Serial.parseInt();
-      if(input < 0 || input > 180)
+      if(input < 0 || input >= 180)
         initialPos = 0;
       else
         initialPos = input;
-      sMotor1.write(initialPos);
+      //sMotor1.write(initialPos);
       sMotor2.write(initialPos);
     } 
   }
@@ -135,11 +137,11 @@ void calibrationRoutine(){
     lcd.print("Input end pos.     ");
     if (Serial.available() > 0){
       int input = Serial.parseInt();
-      if(input < 0 || input > 180)
-        endPos = 0;
+      if(input <= 0 || input > 180)
+        endPos = 180;
       else
         endPos = input;
-      sMotor1.write(endPos);
+      //sMotor1.write(endPos);
       sMotor2.write(endPos);
     }
   }
@@ -150,27 +152,30 @@ void setup(){
   	Serial.setTimeout(5);
   	lcd.begin(16,2);
   	pinMode(OK_BUTTON,INPUT);
-  	pinMode(LED_PIN, OUTPUT);
-    sMotor1.attach(SMOTOR1_PIN);
+  	//pinMode(LED_PIN, OUTPUT);
+	  actualPoteValue = analogRead(ADJUST_PIN);
+  	prevPoteValue = actualPoteValue;
+    //sMotor1.attach(SMOTOR1_PIN);
 	  sMotor2.attach(SMOTOR2_PIN);
   	attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
                     calibrationInterrupt,RISING);
-  	lcd.print("  SpontBreath       ");
+  	lcd.print("  Spontaneous   ");
     lcd.setCursor(0,1);
-    lcd.print("    O-Matic         ");
-  	delay(2000);
+    lcd.print("    Breather    ");
+  	delay(1000);
   	lcd.clear();
 }
 
 void loop(){
   unsigned long timeNow = millis();
-  actualPoteValue = analogRead(ADJUST_PIN);
+  
+  //Main function → move the servos Or enter calibration screen
   if(isCalibration){
     calibrationRoutine();
   }
   else if(timeNow - servoTimeStart > servoDelay){
     for (int i=0; i < NUMBER_OF_SAMPLES;i++){
-      monitorBpmArray[i] = (60.0 /servoDelay) * 1000;
+      monitorBpmArray[i] =(60.0/(timeNow-servoTimeStart))*1000;
     }
     showBpmOnLcd();
     servoMove();
@@ -178,11 +183,19 @@ void loop(){
     //Serial.println(servoDelay);
   }
   
-  if(prevPoteValue != actualPoteValue){
-    bpmchangeflag = true;
+  //Change Bpm w/ potentiometer
+  if(timeNow - debounceTimeStart > debounceDelay){
+    debounceTimeStart += debounceDelay;
+    actualPoteValue = analogRead(ADJUST_PIN);
+    int howMuchPoteMove = abs(prevPoteValue - actualPoteValue);
+    //Serial.println(howMuchPoteMove);
+    if(howMuchPoteMove > POTE_FILTER){
+      bpmChangeFlag = true;
+    }
+    changeBreathRate(actualPoteValue);
   }
-  changeBreathRate(actualPoteValue);
   
+  //Blink Led
   if(timeNow - ledTimerStart > ledDelay){
     ledTimerStart += ledDelay;
    	if(ledState == LOW)
