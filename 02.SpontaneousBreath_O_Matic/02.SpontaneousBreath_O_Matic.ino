@@ -16,7 +16,7 @@
 #define ADJUST_PIN  A0
 #define OK_BUTTON   A1
 #define CALIBRATION_PIN 2
-#define POTE_FILTER 30
+#define POTE_FILTER 5
 
 #define NUMBER_OF_SAMPLES 5
 
@@ -42,7 +42,7 @@ bool bpmChangeFlag = false;
 
 //LCD
 double monitorBpmArray[NUMBER_OF_SAMPLES] ={12.0,12.0,12.0,
-                                            12,0,12.0};
+                                            12.0,12.0};
 int index = 0;
 
 //LED
@@ -52,79 +52,6 @@ int ledState = LOW;
 
 //Calibration
 volatile bool isCalibration = false;
-
-void servoMove(){
-  if(oneWay){
-    for(int i = initialPos; i < endPos; i+= step){
-      //sMotor1.write(i);
-      sMotor2.write(i);
-      delayMicroseconds(3);    
-    }
-    oneWay = false;
-  }
-  else{
-    for(int i = endPos; i > initialPos; i-= step){
-      //sMotor1.write(i);
-      sMotor2.write(i);
-      delayMicroseconds(3);
-    }
-    oneWay = true;
-  }
-}
-
-void showBpmOnLcd(){
-  double sumOfSamples = 0;
-  for (int i = 0; i < NUMBER_OF_SAMPLES; i++){
-    sumOfSamples += monitorBpmArray[i]; 
-  }
-  double bpm = sumOfSamples / NUMBER_OF_SAMPLES;
-  lcd.setCursor(0,0);
-  lcd.print(bpm);
-  lcd.print(" bpm.             ");
-}
-
-void changeBreathRate(int poteValue){
-  if(bpmChangeFlag){
-    int configuration = 5 + poteValue / 20;
-    lcd.setCursor(0,1);
-    lcd.print(configuration);
-    lcd.print("    ");
-    if (digitalRead(OK_BUTTON) == HIGH){
-      servoDelay = (60.0 / configuration)*1000;
-      // Serial.println(servoDelay);
-      // Serial.println(configuration);
-      ledDelay = servoDelay / 10;
-      prevPoteValue = poteValue;
-      bpmChangeFlag = false;
-      lcd.setCursor(0,1);
-      lcd.print("                            ");
-    }
-  }
-}
-
-void calibrationInterrupt(){
-  if(isCalibration == false)
-    isCalibration = true;
-}
-
-void calibrationRoutine(int adjustPote){
-  int motorPosition = adjustPote / 5.7;
-  lcd.setCursor(0,0);
-  lcd.print("Cal Screen             ");
-  lcd.setCursor(0,1);
-  lcd.print("Motor Pos: ");
-  lcd.print(motorPosition);
-  lcd.print("           ");
-  //sMotor1.write(motorPosition);
-  sMotor2.write(motorPosition);
-  if(digitalRead(OK_BUTTON) == HIGH)
-  {
-    endPos = motorPosition;
-    initialPos = endPos - 20;
-    isCalibration = false;
-    lcd.clear();
-  } 
-}
 
 void setup(){
 	Serial.begin(115200);
@@ -151,6 +78,8 @@ void loop(){
   //Main function → move the servos Or enter calibration screen
   if(isCalibration){
     calibrationRoutine(actualPoteValue);
+    servoTimeStart = timeNow - servoDelay;
+    prevPoteValue = actualPoteValue;
   }
   else{
     //Change Bpm w/ potentiometer
