@@ -1,20 +1,21 @@
 void servoMove(){
-  if(oneWay){
+ // if(oneWay){
     for(int i = initialPos; i < endPos; i+= step){
       //sMotor1.write(i);
       sMotor2.write(i);
       delayMicroseconds(3);    
     }
     oneWay = false;
-  }
-  else{
+  //}
+  //else{
+    delay(100);
     for(int i = endPos; i > initialPos; i-= step){
       //sMotor1.write(i);
       sMotor2.write(i);
       delayMicroseconds(3);
     }
     oneWay = true;
-  }
+  //}
 }
 
 void showBpmOnLcd(){

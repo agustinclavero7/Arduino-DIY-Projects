@@ -16,6 +16,7 @@ void calibrationRoutine(int adjustPote){
   if(digitalRead(OK_BUTTON) == HIGH)
   {
     endPos = motorPosition;
+    EEPROM.write(EEPROM_CAL_ADRESS,endPos);
     initialPos = endPos - 20;
     isCalibration = false;
     lcd.clear();

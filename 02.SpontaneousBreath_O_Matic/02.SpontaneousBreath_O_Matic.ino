@@ -1,5 +1,6 @@
 #include <Servo.h>
 #include <LiquidCrystal.h>
+#include <EEPROM.h>
 
 #define SMOTOR1_PIN 3
 #define SMOTOR2_PIN 4
@@ -20,6 +21,8 @@
 
 #define NUMBER_OF_SAMPLES 5
 
+#define EEPROM_CAL_ADRESS 100
+
 //Servo sMotor1;
 Servo sMotor2;
 
@@ -31,9 +34,8 @@ unsigned long servoTimeStart = millis();
 unsigned long servoDelay = 5000;
 bool oneWay = true;
 int step = 1;
-// Add read value from EEPROM
-int initialPos = 75;
-int endPos = 120;
+int initialPos;
+int endPos;
 
 //Adjust settings
 int prevPoteValue;
@@ -55,21 +57,25 @@ volatile bool isCalibration = false;
 
 void setup(){
 	Serial.begin(115200);
-  	Serial.setTimeout(5);
-  	lcd.begin(16,2);
-  	pinMode(OK_BUTTON,INPUT);
-  	pinMode(LED_PIN, OUTPUT);
-	  actualPoteValue = analogRead(ADJUST_PIN);
-  	prevPoteValue = actualPoteValue;
-    //sMotor1.attach(SMOTOR1_PIN);
-	  sMotor2.attach(SMOTOR2_PIN);
-  	attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
-                              calibrationInterrupt,RISING);
-  	lcd.print("  Spontaneous   ");
-    lcd.setCursor(0,1);
-    lcd.print("    Breather    ");
-  	delay(1000);
-  	lcd.clear();
+  Serial.setTimeout(5);
+  lcd.begin(16,2);
+  pinMode(OK_BUTTON,INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  actualPoteValue = analogRead(ADJUST_PIN);
+  prevPoteValue = actualPoteValue;
+  //sMotor1.attach(SMOTOR1_PIN);
+  sMotor2.attach(SMOTOR2_PIN);
+  attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
+                            calibrationInterrupt,RISING);
+  //Welcome message
+  lcd.print("  Spontaneous   ");
+  lcd.setCursor(0,1);
+  lcd.print("    Breather    ");
+  delay(1000);
+  lcd.clear();
+  //Restore Settings
+  endPos = EEPROM.read(EEPROM_CAL_ADRESS);
+  initialPos = endPos - 20;
 }
 
 void loop(){
