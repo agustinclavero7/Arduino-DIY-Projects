@@ -17,7 +17,7 @@ void calibrationRoutine(int adjustPote){
   {
     endPos = motorPosition;
     EEPROM.write(EEPROM_CAL_ADRESS,endPos);
-    initialPos = endPos - 20;
+    initialPos = endPos - SERVO_RESTORE_CON;
     isCalibration = false;
     lcd.clear();
   } 

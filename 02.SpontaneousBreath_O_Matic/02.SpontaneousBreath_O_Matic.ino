@@ -4,6 +4,8 @@
 
 #define SMOTOR1_PIN 3
 #define SMOTOR2_PIN 4
+#define SERVO_RESTORE_CON 30
+#define SERVO_STEP 1
 
 #define LCD_RS 53
 #define LCD_E  51
@@ -32,8 +34,6 @@ LiquidCrystal lcd(LCD_RS,LCD_E,LCD_D4,
 // Servo
 unsigned long servoTimeStart = millis();
 unsigned long servoDelay = 5000;
-bool oneWay = true;
-int step = 1;
 int initialPos;
 int endPos;
 
@@ -57,14 +57,13 @@ volatile bool isCalibration = false;
 
 void setup(){
 	Serial.begin(115200);
-  Serial.setTimeout(5);
   lcd.begin(16,2);
   pinMode(OK_BUTTON,INPUT);
   pinMode(LED_PIN, OUTPUT);
   actualPoteValue = analogRead(ADJUST_PIN);
   prevPoteValue = actualPoteValue;
   //sMotor1.attach(SMOTOR1_PIN);
-  sMotor2.attach(SMOTOR2_PIN);
+  sMotor2.attach(SMOTOR2_PIN, 1000, 2000);
   attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
                             calibrationInterrupt,RISING);
   //Welcome message
@@ -75,7 +74,7 @@ void setup(){
   lcd.clear();
   //Restore Settings
   endPos = EEPROM.read(EEPROM_CAL_ADRESS);
-  initialPos = endPos - 20;
+  initialPos = endPos - SERVO_RESTORE_CON;
 }
 
 void loop(){
@@ -88,13 +87,6 @@ void loop(){
     prevPoteValue = actualPoteValue;
   }
   else{
-    //Change Bpm w/ potentiometer
-    int howMuchPoteMove = abs(prevPoteValue - actualPoteValue);
-    if(howMuchPoteMove > POTE_FILTER){
-      bpmChangeFlag = true;
-    }
-    changeBreathRate(actualPoteValue);
-    
     //Move servos and show data.
     showBpmOnLcd();
     if(timeNow - servoTimeStart > servoDelay){
@@ -105,8 +97,13 @@ void loop(){
        index++;
       servoMove();
       servoTimeStart += servoDelay;
-      //Serial.println(servoDelay);
     }
+    //Change Bpm w/ potentiometer
+    int howMuchPoteMove = abs(prevPoteValue - actualPoteValue);
+    if(howMuchPoteMove > POTE_FILTER){
+      bpmChangeFlag = true;
+    }
+    changeBreathRate(actualPoteValue);
   }
   
   //Blink Led

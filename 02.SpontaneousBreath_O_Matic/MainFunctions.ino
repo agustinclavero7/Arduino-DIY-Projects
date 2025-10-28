@@ -1,21 +1,14 @@
 void servoMove(){
- // if(oneWay){
-    for(int i = initialPos; i < endPos; i+= step){
-      //sMotor1.write(i);
-      sMotor2.write(i);
-      delayMicroseconds(3);    
-    }
-    oneWay = false;
-  //}
-  //else{
-    delay(100);
-    for(int i = endPos; i > initialPos; i-= step){
-      //sMotor1.write(i);
-      sMotor2.write(i);
-      delayMicroseconds(3);
-    }
-    oneWay = true;
-  //}
+  for(int i = initialPos; i < endPos; i+= SERVO_STEP){
+    //sMotor1.write(i);
+    sMotor2.write(i);
+    delayMicroseconds(4000);    
+  }
+  for(int i = endPos; i > initialPos; i-= SERVO_STEP){
+    //sMotor1.write(i);
+    sMotor2.write(i);
+    delayMicroseconds(4000);
+  }
 }
 
 void showBpmOnLcd(){
@@ -37,9 +30,7 @@ void changeBreathRate(int poteValue){
     lcd.print("    ");
     if (digitalRead(OK_BUTTON) == HIGH){
       servoDelay = (60.0 / configuration)*1000;
-      // Serial.println(servoDelay);
-      // Serial.println(configuration);
-      ledDelay = servoDelay / 10;
+      ledDelay = servoDelay / 2;
       prevPoteValue = poteValue;
       bpmChangeFlag = false;
       lcd.setCursor(0,1);
