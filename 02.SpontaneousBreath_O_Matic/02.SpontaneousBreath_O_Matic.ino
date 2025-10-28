@@ -49,7 +49,7 @@ int index = 0;
 
 //LED
 unsigned long ledTimerStart = millis();
-unsigned long ledDelay = 200;
+unsigned long ledDelay = 2500;
 int ledState = LOW;
 
 //Calibration
@@ -75,7 +75,7 @@ void setup(){
   lcd.clear();
   //Restore Settings
   endPos = EEPROM.read(EEPROM_CAL_ADRESS);
-  initialPos = endPos - 20;
+  initialPos = endPos - 30;
 }
 
 void loop(){

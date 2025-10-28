@@ -3,16 +3,15 @@ void servoMove(){
     for(int i = initialPos; i < endPos; i+= step){
       //sMotor1.write(i);
       sMotor2.write(i);
-      delayMicroseconds(3);    
+      delayMicroseconds(5000);
     }
     oneWay = false;
   //}
   //else{
-    delay(100);
     for(int i = endPos; i > initialPos; i-= step){
       //sMotor1.write(i);
       sMotor2.write(i);
-      delayMicroseconds(3);
+      delayMicroseconds(5000);
     }
     oneWay = true;
   //}
@@ -39,7 +38,7 @@ void changeBreathRate(int poteValue){
       servoDelay = (60.0 / configuration)*1000;
       // Serial.println(servoDelay);
       // Serial.println(configuration);
-      ledDelay = servoDelay / 10;
+      ledDelay = servoDelay/2;
       prevPoteValue = poteValue;
       bpmChangeFlag = false;
       lcd.setCursor(0,1);
