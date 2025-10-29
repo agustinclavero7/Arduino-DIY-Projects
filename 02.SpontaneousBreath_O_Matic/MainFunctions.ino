@@ -11,6 +11,14 @@ void servoMove(){
   }
 }
 
+void calculateBpm(int period){
+  monitorBpmArray[index] =(60.0/(period))*1000; 
+  if(index == NUMBER_OF_SAMPLES - 1)
+    index = 0;
+  else
+    index++;
+}
+
 void showBpmOnLcd(){
   double sumOfSamples = 0;
   for (int i = 0; i < NUMBER_OF_SAMPLES; i++){

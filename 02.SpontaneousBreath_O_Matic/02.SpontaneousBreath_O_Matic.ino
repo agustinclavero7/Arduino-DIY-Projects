@@ -91,11 +91,8 @@ void loop(){
     //Move servos and show data.
     showBpmOnLcd();
     if(timeNow - servoTimeStart > servoDelay){
-      monitorBpmArray[index] =(60.0/(timeNow-servoTimeStart))*1000; 
-      if(index == NUMBER_OF_SAMPLES - 1)
-       index = 0;
-      else
-       index++;
+      int servoTimePeriod = timeNow - servoTimeStart;
+      calculateBpm(servoTimePeriod);
       servoMove();
       servoTimeStart += servoDelay;
     }
