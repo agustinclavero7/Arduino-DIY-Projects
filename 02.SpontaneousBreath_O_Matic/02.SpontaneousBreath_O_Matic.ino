@@ -4,8 +4,9 @@
 
 #define SMOTOR1_PIN 3
 #define SMOTOR2_PIN 4
-#define SERVO_RESTORE_CON 30
+#define SERVO_RESTORE_CONS 30
 #define SERVO_STEP 1
+#define SERVO_STEP_DELAY 4000
 
 #define LCD_RS 53
 #define LCD_E  51
@@ -74,11 +75,7 @@ void setup(){
   lcd.clear();
   //Restore Settings
   endPos = EEPROM.read(EEPROM_CAL_ADRESS);
-<<<<<<< HEAD
-  initialPos = endPos - SERVO_RESTORE_CON;
-=======
-  initialPos = endPos - 30;
->>>>>>> 4b70da726d8c9ba557fe5508a189eb46189c32a1
+  initialPos = endPos - SERVO_RESTORE_CONS;
 }
 
 void loop(){
