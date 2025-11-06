@@ -1,24 +1,24 @@
 void calibrationInterrupt(){
-  if(isCalibration == false)
+  if(isCalibration == false){
     isCalibration = true;
+  }
 }
 
-void calibrationRoutine(int adjustPote){
-  int motorPosition = adjustPote / 5.7;
+void calibrationRoutine(int motorPosition){
   lcd.setCursor(0,0);
   lcd.print("Cal Screen             ");
   lcd.setCursor(0,1);
   lcd.print("Motor Pos: ");
   lcd.print(motorPosition);
   lcd.print("           ");
-  //sMotor1.write(motorPosition);
   sMotor2.write(motorPosition);
-  if(digitalRead(OK_BUTTON) == HIGH)
+  if(digitalRead(ENCODER_SW_PIN) == LOW)
   {
     endPos = motorPosition;
     EEPROM.write(EEPROM_CAL_ADRESS,endPos);
     initialPos = endPos - SERVO_RESTORE_CONS;
     isCalibration = false;
+    actualEncoderPosition = lastEncoderPosition;
     lcd.clear();
   } 
 }
