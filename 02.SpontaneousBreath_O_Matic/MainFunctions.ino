@@ -20,7 +20,11 @@ void changeBreathRate(int encoderValue){
     lcd.setCursor(0,1);
     lcd.print(encoderValue);
     lcd.print("    ");
+<<<<<<< HEAD
     if (digitalRead(ENCODER_SW_PIN) == HIGH){
+=======
+    if (digitalRead(ENCODER_SW_PIN) == LOW){
+>>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
       servoDelay = (60.0 / encoderValue)*1000;
       ledDelay = servoDelay / 2;
       bpmChangeFlag = false;

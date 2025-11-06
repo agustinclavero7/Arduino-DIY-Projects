@@ -38,8 +38,13 @@ int endPos;
 
 //Adjust settings
 volatile int actualEncoderPosition = 12;
+<<<<<<< HEAD
 volatile int prevEncoder;
 static unsigned long lastInterruptTime = millis();
+=======
+int lastEncoderPosition;
+volatile unsigned long lastInterruptTime = millis();
+>>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
 volatile int encoderDebounceDelay = 5;
 volatile bool bpmChangeFlag = false;
 
@@ -62,7 +67,11 @@ void setup(){
   lcd.begin(16,2);
   pinMode(ENCODER_A_PIN,INPUT);
   pinMode(ENCODER_B_PIN,INPUT);
+<<<<<<< HEAD
   pinMode(ENCODER_SW_PIN,INPUT);
+=======
+  pinMode(ENCODER_SW_PIN,INPUT_PULLUP);
+>>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
   pinMode(LED_PIN, OUTPUT);
   sMotor2.attach(SMOTOR2_PIN, 1000, 2000);
   attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
@@ -99,6 +108,10 @@ void loop(){
     //Change Bpm w/ encoder
     if(bpmChangeFlag){
       changeBreathRate(actualEncoderPosition);
+<<<<<<< HEAD
+=======
+      lastEncoderPosition = actualEncoderPosition;
+>>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
     }
   }
   //Blink Led
