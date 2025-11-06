@@ -1,22 +1,33 @@
-void servoMove(){
-  for(int i = initialPos; i < endPos; i+= SERVO_STEP){
-    //sMotor1.write(i);
-    sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);    
-  }
-  for(int i = endPos; i > initialPos; i-= SERVO_STEP){
-    //sMotor1.write(i);
-    sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);
+void encoderInterrupt(){
+  unsigned long timeNow = millis();
+  if(timeNow - lastInterruptTime > encoderDebounceDelay){
+    bpmChangeFlag = true;
+    lastInterruptTime = timeNow;
+    if(digitalRead(ENCODER_B_PIN) == HIGH)
+      actualEncoderPosition++;
+    else
+      actualEncoderPosition--;
+
+    if(isCalibration)
+      actualEncoderPosition = min(180, max (0, actualEncoderPosition));
+    else
+      actualEncoderPosition = min(60, max (0, actualEncoderPosition));
   }
 }
 
-void calculateBpm(int period){
-  monitorBpmArray[index] =(60.0/(period))*1000; 
-  if(index == NUMBER_OF_SAMPLES - 1)
-    index = 0;
-  else
-    index++;
+void changeBreathRate(int encoderValue){
+  if(bpmChangeFlag){
+    lcd.setCursor(0,1);
+    lcd.print(encoderValue);
+    lcd.print("    ");
+    if (digitalRead(ENCODER_SW_PIN) == LOW){
+      servoDelay = (60.0 / encoderValue)*1000;
+      ledDelay = servoDelay / 2;
+      bpmChangeFlag = false;
+      lcd.setCursor(0,1);
+      lcd.print("                            ");
+    }
+  }
 }
 
 void showBpmOnLcd(){
@@ -30,19 +41,21 @@ void showBpmOnLcd(){
   lcd.print(" bpm.             ");
 }
 
-void changeBreathRate(int poteValue){
-  if(bpmChangeFlag){
-    int configuration = 5 + poteValue / 20;
-    lcd.setCursor(0,1);
-    lcd.print(configuration);
-    lcd.print("    ");
-    if (digitalRead(OK_BUTTON) == HIGH){
-      servoDelay = (60.0 / configuration)*1000;
-      ledDelay = servoDelay / 2;
-      prevPoteValue = poteValue;
-      bpmChangeFlag = false;
-      lcd.setCursor(0,1);
-      lcd.print("                            ");
-    }
+void servoMove(){
+  for(int i = initialPos; i < endPos; i+= SERVO_STEP){
+    sMotor2.write(i);
+    delayMicroseconds(SERVO_STEP_DELAY);    
   }
+  for(int i = endPos; i > initialPos; i-= SERVO_STEP){
+    sMotor2.write(i);
+    delayMicroseconds(SERVO_STEP_DELAY);
+  }
+}
+
+void calculateBpm(int period){
+  monitorBpmArray[index] =(60.0/(period))*1000; 
+  if(index == NUMBER_OF_SAMPLES - 1)
+    index = 0;
+  else
+    index++;
 }
