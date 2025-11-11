@@ -3,9 +3,9 @@
 #include <EEPROM.h>
 
 #define SMOTOR2_PIN         6
-#define SERVO_RESTORE_CONS 30
+#define SERVO_RESTORE_CONS 20
 #define SERVO_STEP          1
-#define SERVO_STEP_DELAY 4000
+#define SERVO_STEP_DELAY    3
 
 #define LCD_RS  53
 #define LCD_E   51
@@ -14,7 +14,8 @@
 #define LCD_D6  45
 #define LCD_D7  43
 
-#define LED_PIN 41
+#define LED_PIN   41
+#define PAUSE_PIN  7
 
 #define ENCODER_A_PIN   3
 #define ENCODER_B_PIN   4
@@ -55,6 +56,9 @@ int ledState = LOW;
 //Calibration
 volatile bool isCalibration = false;
 
+//Pause
+volatile bool pauseStateFlag = false;
+
 void setup(){
 	Serial.begin(115200);
   lcd.begin(16,2);
@@ -62,6 +66,7 @@ void setup(){
   pinMode(ENCODER_B_PIN,INPUT);
   pinMode(ENCODER_SW_PIN,INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
+  pinMode(PAUSE_PIN,INPUT);
   sMotor2.attach(SMOTOR2_PIN, 1000, 2000);
   attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
                             calibrationInterrupt,RISING);
@@ -83,7 +88,9 @@ void loop(){
   //Main function → move the servos Or enter calibration screen
   if(isCalibration){
     calibrationRoutine(actualEncoderPosition);
-    servoTimeStart = timeNow - servoDelay;
+  }
+  else if(pauseStateFlag){
+    pauseFunction();
   }
   else{
     //Move servos and show data.
@@ -97,6 +104,9 @@ void loop(){
     //Change Bpm w/ encoder
     if(actualEncoderPosition != lastEncoderPosition){
       changeBreathRate(actualEncoderPosition);
+    }
+    if(digitalRead(PAUSE_PIN) == HIGH){
+      pauseStateFlag = true;
     }
       //Blink Led
     if(timeNow - ledTimerStart > ledDelay){

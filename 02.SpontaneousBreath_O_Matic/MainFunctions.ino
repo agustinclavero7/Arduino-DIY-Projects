@@ -1,5 +1,6 @@
 void encoderInterrupt(){
   unsigned long timeNow = millis();
+  pauseStateFlag = false;
   if(timeNow - lastInterruptTime > encoderDebounceDelay){
     lastInterruptTime = timeNow;
     if(digitalRead(ENCODER_B_PIN) == HIGH)
@@ -8,7 +9,7 @@ void encoderInterrupt(){
       actualEncoderPosition--;
 
     if(isCalibration)
-      actualEncoderPosition = min(60, max (0, actualEncoderPosition));
+      actualEncoderPosition = min(180, max (SERVO_RESTORE_CONS, actualEncoderPosition));
     else
       actualEncoderPosition = min(60, max (0, actualEncoderPosition));
   }
@@ -41,11 +42,11 @@ void showBpmOnLcd(){
 void servoMove(){
   for(int i = initialPos; i < endPos; i+= SERVO_STEP){
     sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);    
+    delay(SERVO_STEP_DELAY);    
   }
   for(int i = endPos; i > initialPos; i-= SERVO_STEP){
     sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);
+    delay(SERVO_STEP_DELAY);
   }
 }
 
@@ -63,4 +64,10 @@ void ledBlink(){
   else
     ledState = LOW;
   digitalWrite(LED_PIN,ledState);
+}
+
+void pauseFunction(){
+  digitalWrite(LED_PIN,HIGH);
+  lcd.setCursor(0,1);
+  lcd.print("Pause              ");
 }
