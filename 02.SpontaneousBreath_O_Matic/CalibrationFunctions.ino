@@ -2,6 +2,7 @@ void calibrationInterrupt(){
   if(isCalibration == false){
     isCalibration = true;
   }
+  actualEncoderPosition = EEPROM.read(EEPROM_CAL_ADRESS);
 }
 
 void calibrationRoutine(int motorPosition){
