@@ -1,7 +1,7 @@
 void encoderInterrupt(){
   unsigned long timeNow = millis();
+  pauseStateFlag = false;
   if(timeNow - lastInterruptTime > encoderDebounceDelay){
-    bpmChangeFlag = true;
     lastInterruptTime = timeNow;
     if(digitalRead(ENCODER_B_PIN) == HIGH)
       actualEncoderPosition++;
@@ -9,27 +9,29 @@ void encoderInterrupt(){
       actualEncoderPosition--;
 
     if(isCalibration)
-      actualEncoderPosition = min(180, max (0, actualEncoderPosition));
+      actualEncoderPosition = min(180, max (SERVO_RESTORE_CONS, actualEncoderPosition));
     else
       actualEncoderPosition = min(60, max (0, actualEncoderPosition));
   }
 }
 
 void changeBreathRate(int encoderValue){
-  if(bpmChangeFlag){
+  lcd.setCursor(0,1);
+  lcd.print(encoderValue);
+  lcd.print("    ");
+  if (digitalRead(ENCODER_SW_PIN) == LOW){
+    servoDelay = (60.0 / encoderValue)*1000;
+    ledDelay = servoDelay / 2;
     lcd.setCursor(0,1);
     lcd.print(encoderValue);
     lcd.print("    ");
-<<<<<<< HEAD
-    if (digitalRead(ENCODER_SW_PIN) == HIGH){
-=======
     if (digitalRead(ENCODER_SW_PIN) == LOW){
->>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
       servoDelay = (60.0 / encoderValue)*1000;
       ledDelay = servoDelay / 2;
-      bpmChangeFlag = false;
       lcd.setCursor(0,1);
       lcd.print("                            ");
+      lastEncoderPosition = actualEncoderPosition;
+      lastTimeSw = millis();
     }
   }
 }
@@ -48,11 +50,11 @@ void showBpmOnLcd(){
 void servoMove(){
   for(int i = initialPos; i < endPos; i+= SERVO_STEP){
     sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);    
+    delay(SERVO_STEP_DELAY);    
   }
   for(int i = endPos; i > initialPos; i-= SERVO_STEP){
     sMotor2.write(i);
-    delayMicroseconds(SERVO_STEP_DELAY);
+    delay(SERVO_STEP_DELAY);
   }
 }
 
@@ -62,4 +64,18 @@ void calculateBpm(int period){
     index = 0;
   else
     index++;
+}
+
+void ledBlink(){
+  if(ledState == LOW)
+    ledState = HIGH;
+  else
+    ledState = LOW;
+  digitalWrite(LED_PIN,ledState);
+}
+
+void pauseFunction(){
+  digitalWrite(LED_PIN,HIGH);
+  lcd.setCursor(0,1);
+  lcd.print("Pause              ");
 }

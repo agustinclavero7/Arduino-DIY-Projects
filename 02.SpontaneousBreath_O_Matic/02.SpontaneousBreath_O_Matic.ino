@@ -2,10 +2,10 @@
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
 
-#define SMOTOR2_PIN         4
-#define SERVO_RESTORE_CONS 30
+#define SMOTOR2_PIN         6
+#define SERVO_RESTORE_CONS 20
 #define SERVO_STEP          1
-#define SERVO_STEP_DELAY 4000
+#define SERVO_STEP_DELAY    3
 
 #define LCD_RS  53
 #define LCD_E   51
@@ -14,11 +14,11 @@
 #define LCD_D6  45
 #define LCD_D7  43
 
-#define LED_PIN 41
+#define LED_PIN   41
 
-#define ENCODER_A_PIN  18
-#define ENCODER_B_PIN  17
-#define ENCODER_SW_PIN 16
+#define ENCODER_A_PIN   3
+#define ENCODER_B_PIN   4
+#define ENCODER_SW_PIN  5
 #define CALIBRATION_PIN 2
 
 #define NUMBER_OF_SAMPLES 5
@@ -38,16 +38,9 @@ int endPos;
 
 //Adjust settings
 volatile int actualEncoderPosition = 12;
-<<<<<<< HEAD
-volatile int prevEncoder;
-static unsigned long lastInterruptTime = millis();
-=======
-int lastEncoderPosition;
+volatile int lastEncoderPosition = actualEncoderPosition;
 volatile unsigned long lastInterruptTime = millis();
->>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
 volatile int encoderDebounceDelay = 5;
-volatile bool bpmChangeFlag = false;
-
 
 //LCD
 double monitorBpmArray[NUMBER_OF_SAMPLES] ={12.0,12.0,12.0,
@@ -62,16 +55,17 @@ int ledState = LOW;
 //Calibration
 volatile bool isCalibration = false;
 
+//Pause
+byte pauseDelay = 150;
+unsigned long lastTimeSw = millis();
+volatile bool pauseStateFlag = false;
+
 void setup(){
 	Serial.begin(115200);
   lcd.begin(16,2);
   pinMode(ENCODER_A_PIN,INPUT);
   pinMode(ENCODER_B_PIN,INPUT);
-<<<<<<< HEAD
-  pinMode(ENCODER_SW_PIN,INPUT);
-=======
   pinMode(ENCODER_SW_PIN,INPUT_PULLUP);
->>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
   pinMode(LED_PIN, OUTPUT);
   sMotor2.attach(SMOTOR2_PIN, 1000, 2000);
   attachInterrupt(digitalPinToInterrupt(CALIBRATION_PIN),
@@ -94,33 +88,33 @@ void loop(){
   //Main function → move the servos Or enter calibration screen
   if(isCalibration){
     calibrationRoutine(actualEncoderPosition);
-    servoTimeStart = timeNow - servoDelay;
+  }
+  else if(pauseStateFlag){
+    pauseFunction();
   }
   else{
     //Move servos and show data.
-    showBpmOnLcd();
     if(timeNow - servoTimeStart > servoDelay){
       int servoTimePeriod = timeNow - servoTimeStart;
       calculateBpm(servoTimePeriod);
+      showBpmOnLcd();
       servoMove();
       servoTimeStart += servoDelay;
     }
     //Change Bpm w/ encoder
-    if(bpmChangeFlag){
+    if(actualEncoderPosition != lastEncoderPosition){
       changeBreathRate(actualEncoderPosition);
-<<<<<<< HEAD
-=======
-      lastEncoderPosition = actualEncoderPosition;
->>>>>>> aa8dde34652e42451148aa4cfc60de8846e6372e
     }
-  }
-  //Blink Led
-  if(timeNow - ledTimerStart > ledDelay){
-    ledTimerStart += ledDelay;
-   	if(ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
-    digitalWrite(LED_PIN,ledState);
+    else if(timeNow - lastTimeSw > pauseDelay){
+      if(digitalRead(ENCODER_SW_PIN) == LOW){
+        lastTimeSw = timeNow;
+        pauseStateFlag = true;
+      }
+    }
+    //Blink Led
+    if(timeNow - ledTimerStart > ledDelay){
+      ledTimerStart += ledDelay;
+      ledBlink();
+    }
   }
 }
