@@ -1,7 +1,6 @@
 void encoderInterrupt(){
   unsigned long timeNow = millis();
   if(timeNow - lastInterruptTime > encoderDebounceDelay){
-    bpmChangeFlag = true;
     lastInterruptTime = timeNow;
     if(digitalRead(ENCODER_B_PIN) == HIGH)
       actualEncoderPosition++;
@@ -9,24 +8,22 @@ void encoderInterrupt(){
       actualEncoderPosition--;
 
     if(isCalibration)
-      actualEncoderPosition = min(180, max (0, actualEncoderPosition));
+      actualEncoderPosition = min(60, max (0, actualEncoderPosition));
     else
       actualEncoderPosition = min(60, max (0, actualEncoderPosition));
   }
 }
 
 void changeBreathRate(int encoderValue){
-  if(bpmChangeFlag){
+  lcd.setCursor(0,1);
+  lcd.print(encoderValue);
+  lcd.print("    ");
+  if (digitalRead(ENCODER_SW_PIN) == LOW){
+    servoDelay = (60.0 / encoderValue)*1000;
+    ledDelay = servoDelay / 2;
     lcd.setCursor(0,1);
-    lcd.print(encoderValue);
-    lcd.print("    ");
-    if (digitalRead(ENCODER_SW_PIN) == LOW){
-      servoDelay = (60.0 / encoderValue)*1000;
-      ledDelay = servoDelay / 2;
-      bpmChangeFlag = false;
-      lcd.setCursor(0,1);
-      lcd.print("                            ");
-    }
+    lcd.print("                            ");
+    lastEncoderPosition = actualEncoderPosition;
   }
 }
 
@@ -58,4 +55,12 @@ void calculateBpm(int period){
     index = 0;
   else
     index++;
+}
+
+void ledBlink(){
+  if(ledState == LOW)
+    ledState = HIGH;
+  else
+    ledState = LOW;
+  digitalWrite(LED_PIN,ledState);
 }

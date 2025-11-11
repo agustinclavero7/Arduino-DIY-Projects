@@ -2,7 +2,7 @@
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
 
-#define SMOTOR2_PIN         4
+#define SMOTOR2_PIN         6
 #define SERVO_RESTORE_CONS 30
 #define SERVO_STEP          1
 #define SERVO_STEP_DELAY 4000
@@ -16,9 +16,9 @@
 
 #define LED_PIN 41
 
-#define ENCODER_A_PIN  18
-#define ENCODER_B_PIN  17
-#define ENCODER_SW_PIN 16
+#define ENCODER_A_PIN   3
+#define ENCODER_B_PIN   4
+#define ENCODER_SW_PIN  5
 #define CALIBRATION_PIN 2
 
 #define NUMBER_OF_SAMPLES 5
@@ -38,11 +38,9 @@ int endPos;
 
 //Adjust settings
 volatile int actualEncoderPosition = 12;
-int lastEncoderPosition;
+volatile int lastEncoderPosition = actualEncoderPosition;
 volatile unsigned long lastInterruptTime = millis();
 volatile int encoderDebounceDelay = 5;
-volatile bool bpmChangeFlag = false;
-
 
 //LCD
 double monitorBpmArray[NUMBER_OF_SAMPLES] ={12.0,12.0,12.0,
@@ -89,26 +87,21 @@ void loop(){
   }
   else{
     //Move servos and show data.
-    showBpmOnLcd();
     if(timeNow - servoTimeStart > servoDelay){
       int servoTimePeriod = timeNow - servoTimeStart;
       calculateBpm(servoTimePeriod);
+      showBpmOnLcd();
       servoMove();
       servoTimeStart += servoDelay;
     }
     //Change Bpm w/ encoder
-    if(bpmChangeFlag){
+    if(actualEncoderPosition != lastEncoderPosition){
       changeBreathRate(actualEncoderPosition);
-      lastEncoderPosition = actualEncoderPosition;
     }
-  }
-  //Blink Led
-  if(timeNow - ledTimerStart > ledDelay){
-    ledTimerStart += ledDelay;
-   	if(ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
-    digitalWrite(LED_PIN,ledState);
+      //Blink Led
+    if(timeNow - ledTimerStart > ledDelay){
+      ledTimerStart += ledDelay;
+      ledBlink();
+    }
   }
 }
