@@ -9,9 +9,9 @@ void encoderInterrupt(){
       actualEncoderPosition--;
 
     if(isCalibration)
-      actualEncoderPosition = min(180, max (SERVO_RESTORE_CONS, actualEncoderPosition));
+      actualEncoderPosition = min(180 - SERVO_FW, max (0, actualEncoderPosition));
     else
-      actualEncoderPosition = min(60, max (0, actualEncoderPosition));
+      actualEncoderPosition = min(60, max (1, actualEncoderPosition));
   }
 }
 
@@ -19,20 +19,16 @@ void changeBreathRate(int encoderValue){
   lcd.setCursor(0,1);
   lcd.print(encoderValue);
   lcd.print("    ");
+  Serial.print(" Config ");
+  Serial.println(encoderValue);
   if (digitalRead(ENCODER_SW_PIN) == LOW){
+    lastTimeSw += pauseDelay;
+    lastEncoderPosition = actualEncoderPosition;
     servoDelay = (60.0 / encoderValue)*1000;
     ledDelay = servoDelay / 2;
     lcd.setCursor(0,1);
     lcd.print(encoderValue);
     lcd.print("    ");
-    if (digitalRead(ENCODER_SW_PIN) == LOW){
-      servoDelay = (60.0 / encoderValue)*1000;
-      ledDelay = servoDelay / 2;
-      lcd.setCursor(0,1);
-      lcd.print("                            ");
-      lastEncoderPosition = actualEncoderPosition;
-      lastTimeSw = millis();
-    }
   }
 }
 
@@ -45,6 +41,9 @@ void showBpmOnLcd(){
   lcd.setCursor(0,0);
   lcd.print(bpm);
   lcd.print(" bpm.             ");
+  Serial.print(" bpm ");
+  Serial.println(bpm);
+
 }
 
 void servoMove(){
