@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 
 #define SMOTOR2_PIN         6
-#define SERVO_RESTORE_CONS 20
+#define SERVO_FW           20
 #define SERVO_STEP          1
 #define SERVO_STEP_DELAY    3
 
@@ -79,8 +79,8 @@ void setup(){
   delay(1000);
   lcd.clear();
   //Restore Settings
-  endPos = EEPROM.read(EEPROM_CAL_ADRESS);
-  initialPos = endPos - SERVO_RESTORE_CONS;
+  initialPos = EEPROM.read(EEPROM_CAL_ADRESS);
+  endPos = initialPos + SERVO_FW;
 }
 
 void loop(){
@@ -91,6 +91,7 @@ void loop(){
   }
   else if(pauseStateFlag){
     pauseFunction();
+    Serial.print("Pausa");
   }
   else{
     //Move servos and show data.
@@ -107,7 +108,7 @@ void loop(){
     }
     else if(timeNow - lastTimeSw > pauseDelay){
       if(digitalRead(ENCODER_SW_PIN) == LOW){
-        lastTimeSw = timeNow;
+        lastTimeSw += pauseDelay;
         pauseStateFlag = true;
       }
     }
