@@ -7,12 +7,12 @@
 #define SERVO_STEP          1
 #define SERVO_STEP_DELAY    3
 
-#define LCD_RS  53
-#define LCD_E   51
-#define LCD_D4  49
-#define LCD_D5  47
-#define LCD_D6  45
-#define LCD_D7  43
+#define LCD_RS  13
+#define LCD_E   12
+#define LCD_D4  11
+#define LCD_D5  10
+#define LCD_D6  9
+#define LCD_D7  8
 
 #define LED_PIN   41
 
@@ -40,7 +40,9 @@ int endPos;
 volatile int actualEncoderPosition = 12;
 volatile int lastEncoderPosition = actualEncoderPosition;
 volatile unsigned long lastInterruptTime = millis();
-volatile int encoderDebounceDelay = 5;
+volatile int encoderDebounceDelay = 100;
+unsigned long changeBpmTimer = millis();
+byte changeBpmDelay = 100;
 
 //LCD
 double monitorBpmArray[NUMBER_OF_SAMPLES] ={12.0,12.0,12.0,
@@ -54,11 +56,6 @@ int ledState = LOW;
 
 //Calibration
 volatile bool isCalibration = false;
-
-//Pause
-byte pauseDelay = 150;
-unsigned long lastTimeSw = millis();
-volatile bool pauseStateFlag = false;
 
 void setup(){
 	Serial.begin(115200);
@@ -86,13 +83,8 @@ void setup(){
 void loop(){
   unsigned long timeNow = millis();
   //Main function → move the servos Or enter calibration screen
-  if(isCalibration){
+  if(isCalibration)
     calibrationRoutine(actualEncoderPosition);
-  }
-  else if(pauseStateFlag){
-    pauseFunction();
-    Serial.print("Pausa");
-  }
   else{
     //Move servos and show data.
     if(timeNow - servoTimeStart > servoDelay){
@@ -103,19 +95,16 @@ void loop(){
       servoTimeStart += servoDelay;
     }
     //Change Bpm w/ encoder
-    if(actualEncoderPosition != lastEncoderPosition){
-      changeBreathRate(actualEncoderPosition);
+    timeNow = millis();
+    if(timeNow - changeBpmTimer > changeBpmDelay){
+      changeBpmTimer += changeBpmDelay;
+      if(actualEncoderPosition != lastEncoderPosition)
+        changeBreathRate(actualEncoderPosition);
     }
-    else if(timeNow - lastTimeSw > pauseDelay){
-      if(digitalRead(ENCODER_SW_PIN) == LOW){
-        lastTimeSw += pauseDelay;
-        pauseStateFlag = true;
-      }
-    }
-    //Blink Led
-    if(timeNow - ledTimerStart > ledDelay){
-      ledTimerStart += ledDelay;
-      ledBlink();
-    }
+    // //Blink Led
+    // if(timeNow - ledTimerStart > ledDelay){
+    //   ledTimerStart += ledDelay;
+    //   ledBlink();
+    // }
   }
 }

@@ -1,6 +1,5 @@
 void encoderInterrupt(){
   unsigned long timeNow = millis();
-  pauseStateFlag = false;
   if(timeNow - lastInterruptTime > encoderDebounceDelay){
     lastInterruptTime = timeNow;
     if(digitalRead(ENCODER_B_PIN) == HIGH)
@@ -19,10 +18,7 @@ void changeBreathRate(int encoderValue){
   lcd.setCursor(0,1);
   lcd.print(encoderValue);
   lcd.print("    ");
-  Serial.print(" Config ");
-  Serial.println(encoderValue);
   if (digitalRead(ENCODER_SW_PIN) == LOW){
-    lastTimeSw += pauseDelay;
     lastEncoderPosition = actualEncoderPosition;
     servoDelay = (60.0 / encoderValue)*1000;
     ledDelay = servoDelay / 2;
@@ -41,9 +37,6 @@ void showBpmOnLcd(){
   lcd.setCursor(0,0);
   lcd.print(bpm);
   lcd.print(" bpm.             ");
-  Serial.print(" bpm ");
-  Serial.println(bpm);
-
 }
 
 void servoMove(){
@@ -65,16 +58,16 @@ void calculateBpm(int period){
     index++;
 }
 
-void ledBlink(){
-  if(ledState == LOW)
-    ledState = HIGH;
-  else
-    ledState = LOW;
-  digitalWrite(LED_PIN,ledState);
-}
+// void ledBlink(){
+//   if(ledState == LOW)
+//     ledState = HIGH;
+//   else
+//     ledState = LOW;
+//   digitalWrite(LED_PIN,ledState);
+// }
 
-void pauseFunction(){
-  digitalWrite(LED_PIN,HIGH);
-  lcd.setCursor(0,1);
-  lcd.print("Pause              ");
-}
+// void pauseFunction(){
+//   digitalWrite(LED_PIN,HIGH);
+//   lcd.setCursor(0,1);
+//   lcd.print("Pause              ");
+// }
