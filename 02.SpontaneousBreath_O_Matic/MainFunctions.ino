@@ -1,11 +1,9 @@
 void servoMove(){
   for(int i = initialPos; i < endPos; i+= SERVO_STEP){
-    //sMotor1.write(i);
     sMotor2.write(i);
     delay(SERVO_STEP_DELAY);    
   }
   for(int i = endPos; i > initialPos; i-= SERVO_STEP){
-    //sMotor1.write(i);
     sMotor2.write(i);
     delay(SERVO_STEP_DELAY);
   }
