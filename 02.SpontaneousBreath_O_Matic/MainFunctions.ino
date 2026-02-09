@@ -1,11 +1,9 @@
 void servoMove(){
   for(int i = initialPos; i < endPos; i+= SERVO_STEP){
-    //sMotor1.write(i);
     sMotor2.write(i);
     delay(SERVO_STEP_DELAY);    
   }
   for(int i = endPos; i > initialPos; i-= SERVO_STEP){
-    //sMotor1.write(i);
     sMotor2.write(i);
     delay(SERVO_STEP_DELAY);
   }
@@ -32,7 +30,6 @@ void showBpmOnLcd(){
 
 void changeBreathRate(int poteValue){
   if(bpmChangeFlag){
-    //Serial.println("Changue Breath rate");
     int configuration = map(poteValue,0,1023,5,60);
     lcd.setCursor(0,1);
     lcd.print(configuration);

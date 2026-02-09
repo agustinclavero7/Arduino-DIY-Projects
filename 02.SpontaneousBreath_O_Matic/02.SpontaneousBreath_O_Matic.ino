@@ -101,7 +101,6 @@ void loop(){
   }
   else{
     //Move servos and show data.
-    //Serial.println("Main mode");
     if(timeNow - servoTimeStart > servoDelay){
       int servoTimePeriod = timeNow - servoTimeStart;
       servoMove();
@@ -112,7 +111,6 @@ void loop(){
     //Change Bpm w/ potentiometer
     actualPoteValue = analogRead(ADJUST_PIN);
     int howMuchPoteMove = abs(prevPoteValue - actualPoteValue);
-    //Serial.println(howMuchPoteMove);
     if(howMuchPoteMove > POTE_FILTER){
       bpmChangeFlag = true;
     }
