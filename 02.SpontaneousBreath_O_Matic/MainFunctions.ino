@@ -1,44 +1,3 @@
-void encoderInterrupt(){
-  unsigned long timeNow = millis();
-  if(timeNow - lastInterruptTime > encoderDebounceDelay){
-    lastInterruptTime = timeNow;
-    if(digitalRead(ENCODER_B_PIN) == HIGH)
-      actualEncoderPosition++;
-    else
-      actualEncoderPosition--;
-
-    if(isCalibration)
-      actualEncoderPosition = min(180 - SERVO_FW, max (0, actualEncoderPosition));
-    else
-      actualEncoderPosition = min(60, max (1, actualEncoderPosition));
-  }
-}
-
-void changeBreathRate(int encoderValue){
-  lcd.setCursor(0,1);
-  lcd.print(encoderValue);
-  lcd.print("    ");
-  if (digitalRead(ENCODER_SW_PIN) == LOW){
-    lastEncoderPosition = actualEncoderPosition;
-    servoDelay = (60.0 / encoderValue)*1000;
-    ledDelay = servoDelay / 2;
-    lcd.setCursor(0,1);
-    lcd.print(encoderValue);
-    lcd.print("    ");
-  }
-}
-
-void showBpmOnLcd(){
-  double sumOfSamples = 0;
-  for (int i = 0; i < NUMBER_OF_SAMPLES; i++){
-    sumOfSamples += monitorBpmArray[i]; 
-  }
-  double bpm = sumOfSamples / NUMBER_OF_SAMPLES;
-  lcd.setCursor(0,0);
-  lcd.print(bpm);
-  lcd.print(" bpm.             ");
-}
-
 void servoMove(){
   for(int i = initialPos; i < endPos; i+= SERVO_STEP){
     sMotor2.write(i);
@@ -58,16 +17,45 @@ void calculateBpm(int period){
     index++;
 }
 
-// void ledBlink(){
-//   if(ledState == LOW)
-//     ledState = HIGH;
-//   else
-//     ledState = LOW;
-//   digitalWrite(LED_PIN,ledState);
-// }
+void showBpmOnLcd(){
+  double sumOfSamples = 0;
+  for (int i = 0; i < NUMBER_OF_SAMPLES; i++){
+    sumOfSamples += monitorBpmArray[i]; 
+  }
+  double bpm = sumOfSamples / NUMBER_OF_SAMPLES;
+  lcd.setCursor(0,0);
+  lcd.print(bpm);
+  lcd.print(" bpm.             ");
+}
 
-// void pauseFunction(){
-//   digitalWrite(LED_PIN,HIGH);
-//   lcd.setCursor(0,1);
-//   lcd.print("Pause              ");
-// }
+void changeBreathRate(int poteValue){
+  if(bpmChangeFlag){
+    int configuration = map(poteValue,0,1023,5,60);
+    lcd.setCursor(0,1);
+    lcd.print(configuration);
+    lcd.print("    ");
+    if (digitalRead(OK_BUTTON) == LOW){
+      pauseTimeStart = millis();
+      servoDelay = (60.0 / configuration)*1000;
+      ledDelay = servoDelay / 2;
+      prevPoteValue = poteValue;
+      bpmChangeFlag = false;
+      lcd.setCursor(0,1);
+      lcd.print("                            ");
+    }
+  }
+}
+
+void pauseState(){
+  lcd.setCursor(0,0);
+  lcd.print("Pausa");
+  digitalWrite(LED_PIN,HIGH);
+}
+
+void ledBlink(){
+  if(ledState == LOW)
+    ledState = HIGH;
+  else
+    ledState = LOW;
+  digitalWrite(LED_PIN,ledState);
+}
