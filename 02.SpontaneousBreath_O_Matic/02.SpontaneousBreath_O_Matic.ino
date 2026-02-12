@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 
 #define SMOTOR2_PIN 6
-#define SERVO_RESTORE_CONS 15
+#define SERVO_RESTORE_CONS 20
 #define SERVO_STEP 1
 #define SERVO_STEP_DELAY 2
 
