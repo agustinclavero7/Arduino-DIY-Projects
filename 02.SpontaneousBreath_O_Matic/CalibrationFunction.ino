@@ -5,7 +5,7 @@ void calibrationInterrupt(){
 
 void calibrationRoutine(){
   int adjustPote = analogRead(ADJUST_PIN);
-  int motorPosition = adjustPote / 5.7;
+  int motorPosition = map(adjustPote, 0, 1023, 0, 180-SERVO_RESTORE_CONS);
   lcd.setCursor(0,0);
   lcd.print("Cal Screen             ");
   lcd.setCursor(0,1);

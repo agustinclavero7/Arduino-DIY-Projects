@@ -61,6 +61,14 @@ void animation(const byte PROGMEM frames[][512], int frameWidth, int frameHeight
   delay(frameDelay);
 }
 
+void printTextOnOled(char text){
+  oledScreen.clearDisplay();
+  oledScreen.setTextColor(WHITE);
+  oledScreen.setCursor(10,32);
+  oledScreen.print(text);
+  oledScreen.display();
+}
+
 void setup() {
   Wire.begin();
   softSerial.begin(9600);
@@ -78,19 +86,20 @@ void setup() {
   else{
     for(int count = 0; count < DURATION; count ++)
       animation(musicNote,NOTE_WIDTH,NOTE_HEIGHT,NOTE_COUNT,NOTE_DELAY);
+      mp3Player.volume(15);
+      mp3Player.enableLoopAll();
+      reproduciendo = true;
+      mp3Player.start();
   }
 }
 
 void loop() {
-  if(digitalRead(PLAY_BUTTON) == HIGH){
-    oledScreen.clearDisplay();
-    oledScreen.setTextColor(WHITE);
-    oledScreen.setCursor(10,32);
-    oledScreen.print("Press play");
-    oledScreen.display();
+  if(reproduciendo == true){
+    char songName = mp3Player.read();
+    printTextOnOled(songName);
   }
-  else{
-    oledScreen.clearDisplay();
-    oledScreen.display();
+  else if(reproduciendo == false){
+    mp3Player.pause();
+    printTextOnOled("Pause");
   }
 }
