@@ -101,6 +101,7 @@ void loop(){
   }
   else{
     //Move servos and show data.
+    //Serial.println("Main mode");
     if(timeNow - servoTimeStart > servoDelay){
       int servoTimePeriod = timeNow - servoTimeStart;
       servoMove();

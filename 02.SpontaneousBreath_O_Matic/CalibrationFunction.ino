@@ -12,6 +12,7 @@ void calibrationRoutine(){
   lcd.print("Motor Pos: ");
   lcd.print(motorPosition);
   lcd.print("           ");
+  //sMotor1.write(motorPosition);
   sMotor2.write(motorPosition);
   if(digitalRead(OK_BUTTON) == LOW)
   {
