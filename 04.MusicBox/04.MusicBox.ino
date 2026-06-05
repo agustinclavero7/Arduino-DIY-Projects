@@ -12,7 +12,8 @@
 byte frame = 0;
 
 //DFplayer
-#define RX_PIN      7//Para nano 0 y 1, Mega 10 y 11
+#define RX_PIN      7 // Si se usan con la biblio softserial, no usar 0 y 1, ya que se utilian para Serial y
+                      // el programador
 #define TX_PIN      6
 #define PLAY_BUTTON 3
 #define FW_BUTTON   2
@@ -27,7 +28,7 @@ unsigned long debounceTimer = millis();
 byte debounceDelay = 300;
 unsigned long readerTimer = millis();
 int readerDelay = 1000;
-
+//Read files and states
 bool reproduciendo = true;
 bool isBateryOk = true;
 bool fwPress = false;
@@ -39,6 +40,7 @@ uint16_t prevPoteValue = 0;
 byte voLevel;
 int totalFiles;
 int currentFile;
+byte message;
 
 Adafruit_SSD1306 oledScreen(128,64,&Wire,4);
 SoftwareSerial softSerial (RX_PIN,TX_PIN);
@@ -103,7 +105,7 @@ void casetteAnimation(const byte PROGMEM frames[][512], const byte PROGMEM seque
 }
 
 void bateryWarning (){
-  double bateryLevel = map(analogRead(BAT_PIN),337,430,0,100);
+  int bateryLevel = map(analogRead(BAT_PIN),337,430,0,100);
   if (bateryLevel < 75){
     isBateryOk = false;
     //animation(bateryIcon,animationSequence,ANIMATION_COUNT,32,32,ANIMATION_DELAY,48, 16);
@@ -131,7 +133,7 @@ void setup() {
   pinMode(FW_BUTTON,INPUT_PULLUP);
   pinMode(RW_BUTTON,INPUT_PULLUP);
 //Presentación
-  if(!mp3Player.begin(softSerial,false,false)){
+  if(!mp3Player.begin(softSerial,true,false)){
     oledScreen.setCursor(5,32);
     oledScreen.setTextSize(3);
     oledScreen.print(F("FAIL"));
@@ -142,19 +144,17 @@ void setup() {
   currentPoteValue = analogRead(VOL_PIN);
   prevPoteValue = currentPoteValue;
   mp3Player.advertise(1);
-  mp3Player.volume(20);
+  mp3Player.volume(15);
   for(byte count = 0; count < DURATION; count ++){
     eqAnimation(initialAnimation,animationSequence,ANIMATION_COUNT,32,32,ANIMATION_DELAY,45, 8);
   }
   totalFiles = mp3Player.readFileCounts();
-  mp3Player.volume(10);
   mp3Player.randomAll();
 }
 
-
 void loop() {
   unsigned long timeNow = millis();
-//Reproducción  
+  //Reproducción
   if(isBateryOk){
     if(reproduciendo == true){
       casetteAnimation(casetteTape,animationSequence,ANIMATION_COUNT,32,32,ANIMATION_DELAY,45,15);
@@ -177,12 +177,11 @@ void loop() {
       if(abs(currentPoteValue - prevPoteValue) > 5){
         debounceTimer += debounceDelay;
         voLevel = map(currentPoteValue,0,1023,0,30);
-        //Serial.println(voLevel);
         mp3Player.volume(voLevel);
         prevPoteValue = currentPoteValue;
       } 
     }
-
+    //Acciones de botones
     if(playPress == true && reproduciendo == true){
       reproduciendo = false;
       playPress = false;
@@ -201,16 +200,34 @@ void loop() {
       rwPress = false;
       mp3Player.previous();
     }
-  
+    //Lectura de N° de archivo
     if(readerTimer - timeNow > readerDelay){
       readerTimer += timeNow;
       currentFile = mp3Player.readCurrentFileNumber();
     }   
   } 
-
-//Monitoreo de bateria
+  //Monitoreo de bateria
   if(bateryTimer - timeNow > bateryDelay){
     bateryTimer += bateryDelay;
     bateryWarning();
+  }
+  //Manejar estados de error
+  if (mp3Player.available()){
+    message = mp3Player.readType();
+    if (message == DFPlayerError){
+      mp3Player.reset();
+      delay(1000);
+      mp3Player.start();
+    }
+    if (message == DFPlayerCardRemoved){
+      while (true){  
+        oledScreen.clearDisplay();
+        oledScreen.setTextColor(WHITE);
+        oledScreen.setCursor(10, 30);
+        oledScreen.setTextSize(2);
+        oledScreen.print("Insertar SD!");
+        oledScreen.display();
+      }
+    }
   }
 }
