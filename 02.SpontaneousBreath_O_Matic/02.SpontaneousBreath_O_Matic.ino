@@ -60,7 +60,6 @@ int pauseDelay = 150;
 bool pauseFlag = false;
 
 void setup(){
-	Serial.begin(115200);
   lcd.begin(16,2);
   pinMode(OK_BUTTON,INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
@@ -90,7 +89,6 @@ void loop(){
     prevPoteValue = actualPoteValue;
   }
   else if (pauseFlag){
-    //Serial.println("Pause mode");
     pauseState();
     actualPoteValue = analogRead(ADJUST_PIN);
     int howMuchPoteMove = abs(prevPoteValue - actualPoteValue);
@@ -101,7 +99,6 @@ void loop(){
   }
   else{
     //Move servos and show data.
-    //Serial.println("Main mode");
     if(timeNow - servoTimeStart > servoDelay){
       int servoTimePeriod = timeNow - servoTimeStart;
       servoMove();
