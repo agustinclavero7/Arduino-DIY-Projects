@@ -25,7 +25,7 @@ byte frame = 0;
 unsigned long bateryTimer = 0;
 unsigned long bateryDelay = 50000;
 unsigned long debounceTimer = 0;
-byte debounceDelay = 300;
+int debounceDelay = 300;
 unsigned long readerTimer = 0;
 int readerDelay = 1000;
 //Read files and states
@@ -34,15 +34,14 @@ bool isBateryOk = true;
 bool fwPress = false;
 bool rwPress = false;
 bool playPress = false;
-bool rdmPRess = false;
 uint16_t currentPoteValue = 0;
 uint16_t prevPoteValue = 0;
 byte voLevel;
 int totalFiles;
 int currentFile;
-uint8_t message;
+uint8_t message = 255;
 
-Adafruit_SSD1306 oledScreen(128,64,&Wire,4);
+Adafruit_SSD1306 oledScreen(128,64,&Wire,-1);
 SoftwareSerial softSerial (RX_PIN,TX_PIN);
 DFRobotDFPlayerMini mp3Player;
 
@@ -107,18 +106,20 @@ void casetteAnimation(const byte PROGMEM frames[][512], const byte PROGMEM seque
 void bateryWarning (){
   int bateryLevel = constrain(map(analogRead(BAT_PIN),337,430,0,100),0,100);
   if (bateryLevel < 75){
+    if (isBateryOk){   // solo la primera vez que cruza el umbral (edge-triggered)
+      mp3Player.advertise(2);
+      mp3Player.sleep();
+    }
     isBateryOk = false;
-    //animation(bateryIcon,animationSequence,ANIMATION_COUNT,32,32,ANIMATION_DELAY,48, 16);
     char bateryText[30];
     sprintf(bateryText,"Nivel de bat: %d", bateryLevel);
     oledScreen.setCursor(50, 45);
     oledScreen.setTextSize(1);
     oledScreen.print(bateryText);
     oledScreen.display();
-    mp3Player.advertise(2);
-    mp3Player.sleep();
   }
-  else{
+  else if (bateryLevel > 90 && !isBateryOk){
+    mp3Player.start();   // o reset() si start() solo no despierta el módulo
     isBateryOk = true;
   }
 }
@@ -140,8 +141,6 @@ void setup() {
     while(true);
   }
   delay(3000);
-  currentPoteValue = analogRead(VOL_PIN);
-  prevPoteValue = currentPoteValue;
   mp3Player.advertise(1);
   mp3Player.volume(15);
   for(byte count = 0; count < DURATION; count ++){
@@ -199,59 +198,65 @@ void loop() {
       rwPress = false;
       mp3Player.previous();
     }
+    else if(fwPress == true && reproduciendo == false){
+      fwPress = false;
+    }
+    else if(rwPress == true && reproduciendo == false){
+      rwPress = false;
+    }
     //Lectura de N° de archivo
-    if(timeNow- readerTimer > readerDelay){
+    if(timeNow - readerTimer > readerDelay){
       readerTimer = timeNow;
       currentFile = mp3Player.readCurrentFileNumber();
     }   
   } 
   //Monitoreo de bateria
   if(timeNow - bateryTimer > bateryDelay){
-    bateryTimer += bateryDelay;
+    bateryTimer = +bateryDelay;
     bateryWarning();
   }
   //Manejar estados de error
   if (mp3Player.available()){
     message = mp3Player.readType();
     Serial.println(message);
-  }
-  switch (message){
-    case DFPlayerError:{
-      mp3Player.reset();
-      delay(1000);
-      mp3Player.start();
-      reproduciendo = true;
-      isBateryOk = true;
-      break;
-    }
-    case TimeOut:{
-      mp3Player.reset();
-      delay(1000);
-      mp3Player.start();
-      reproduciendo = true;
-      isBateryOk = true;
-      break;
-    }
-    case WrongStack:{
-      mp3Player.reset();
-      delay(1000);
-      mp3Player.start();
-      reproduciendo = true;
-      isBateryOk = true;
-      break;
-    }
-    case DFPlayerCardRemoved:{ 
-      oledScreen.clearDisplay();
-      oledScreen.setTextColor(WHITE);
-      oledScreen.setCursor(10, 30);
-      oledScreen.setTextSize(2);
-      oledScreen.print("Insertar SD!");
-      oledScreen.display();
-      while (true);
-      break;
-    }
-    default:{
-      break;
+    switch (message){
+      case DFPlayerError:{
+        mp3Player.reset();
+        delay(1000);
+        mp3Player.start();
+        reproduciendo = true;
+        isBateryOk = true;
+        break;
+      }
+      case TimeOut:{
+        mp3Player.reset();
+        delay(1000);
+        mp3Player.start();
+        reproduciendo = true;
+        isBateryOk = true;
+        break;
+      }
+      case WrongStack:{
+        mp3Player.reset();
+        delay(1000);
+        mp3Player.start();
+        reproduciendo = true;
+        isBateryOk = true;
+        break;
+      }
+      case DFPlayerCardRemoved:{ 
+        oledScreen.clearDisplay();
+        oledScreen.setTextColor(WHITE);
+        oledScreen.setCursor(10, 30);
+        oledScreen.setTextSize(2);
+        oledScreen.print("Insertar SD!");
+        oledScreen.display();
+        while (true);
+        break;
+      }
+      default:{
+        break;
+      }
     }
   }
 }
