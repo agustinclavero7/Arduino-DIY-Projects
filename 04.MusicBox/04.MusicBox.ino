@@ -27,7 +27,7 @@ unsigned long bateryDelay = 50000;
 unsigned long debounceTimer = 0;
 int debounceDelay = 300;
 unsigned long readerTimer = 0;
-int readerDelay = 1000;
+int readerDelay = 2000;
 //Read files and states
 bool reproduciendo = true;
 bool isBateryOk = true;
@@ -119,7 +119,9 @@ void bateryWarning (){
     oledScreen.display();
   }
   else if (bateryLevel > 90 && !isBateryOk){
-    mp3Player.start();   // o reset() si start() solo no despierta el módulo
+     mp3Player.reset();
+     delay(1000);
+     mp3Player.randomAll();   // o reset() si start() solo no despierta el módulo
     isBateryOk = true;
   }
 }
@@ -141,12 +143,12 @@ void setup() {
     while(true);
   }
   delay(3000);
+  totalFiles = mp3Player.readFileCounts();
   mp3Player.advertise(1);
   mp3Player.volume(15);
   for(byte count = 0; count < DURATION; count ++){
     eqAnimation(initialAnimation,animationSequence,ANIMATION_COUNT,32,32,ANIMATION_DELAY,45, 8);
   }
-  totalFiles = mp3Player.readFileCounts();
   mp3Player.randomAll();
 }
 
@@ -223,7 +225,7 @@ void loop() {
       case DFPlayerError:{
         mp3Player.reset();
         delay(1000);
-        mp3Player.start();
+        mp3Player.randomAll();
         reproduciendo = true;
         isBateryOk = true;
         break;
@@ -231,7 +233,7 @@ void loop() {
       case TimeOut:{
         mp3Player.reset();
         delay(1000);
-        mp3Player.start();
+        mp3Player.randomAll();
         reproduciendo = true;
         isBateryOk = true;
         break;
@@ -239,7 +241,7 @@ void loop() {
       case WrongStack:{
         mp3Player.reset();
         delay(1000);
-        mp3Player.start();
+        mp3Player.randomAll();
         reproduciendo = true;
         isBateryOk = true;
         break;
