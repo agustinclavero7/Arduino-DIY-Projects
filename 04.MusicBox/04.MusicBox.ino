@@ -26,8 +26,6 @@ unsigned long bateryTimer = 0;
 unsigned long bateryDelay = 50000;
 unsigned long debounceTimer = 0;
 int debounceDelay = 300;
-unsigned long readerTimer = 0;
-int readerDelay = 2000;
 //Read files and states
 bool reproduciendo = true;
 bool isBateryOk = true;
@@ -195,10 +193,12 @@ void loop() {
     else if(fwPress == true && reproduciendo == true){
       fwPress = false;
       mp3Player.next();
+      currentFile = mp3Player.readCurrentFileNumber();
     }
     else if(rwPress == true && reproduciendo == true){
       rwPress = false;
       mp3Player.previous();
+      currentFile = mp3Player.readCurrentFileNumber();
     }
     else if(fwPress == true && reproduciendo == false){
       fwPress = false;
@@ -206,12 +206,7 @@ void loop() {
     else if(rwPress == true && reproduciendo == false){
       rwPress = false;
     }
-    //Lectura de N° de archivo
-    if(timeNow - readerTimer > readerDelay){
-      readerTimer = timeNow;
-      currentFile = mp3Player.readCurrentFileNumber();
-    }   
-  } 
+  }
   //Monitoreo de bateria
   if(timeNow - bateryTimer > bateryDelay){
     bateryTimer += bateryDelay;
@@ -222,6 +217,10 @@ void loop() {
     message = mp3Player.readType();
     Serial.println(message);
     switch (message){
+      case DFPlayerPlayFinished:{
+        currentFile = mp3Player.readCurrentFileNumber();
+        break;
+      }
       case DFPlayerError:{
         mp3Player.reset();
         delay(1000);
