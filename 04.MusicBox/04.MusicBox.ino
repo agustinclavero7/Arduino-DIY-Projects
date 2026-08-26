@@ -172,7 +172,7 @@ void loop() {
         rwPress = true;
       }
       currentPoteValue = analogRead(VOL_PIN);
-      if(abs(currentPoteValue - prevPoteValue) > 5){
+      if(abs(currentPoteValue - prevPoteValue) > 50){
         debounceTimer = timeNow;
         voLevel = map(currentPoteValue,0,1023,0,30);
         mp3Player.volume(voLevel);
