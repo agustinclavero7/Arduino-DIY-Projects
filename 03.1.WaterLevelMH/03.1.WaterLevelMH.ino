@@ -15,36 +15,43 @@
 
 #define LEVEL_5   
 #define LEVEL_4
-#define LEVEL_3 98.5
+#define LEVEL_3  98.5
 #define LEVEL_2  65.5
 #define LEVEL_1  32.8
 
 //Gas sensor
-unsigned long gasTimerStart = millis();
-int gasTimerDelay = 50;
+unsigned long lastIRStime = 0;
+int IRSdelay = 25;
 volatile bool isGasactivated = false;
+bool lastGasState = false;
+unsigned long gasTimer = 0;
+int gasDelay = 5000;
+ 
 
 //Nivel de agua
 int ledArray [5] ={LED1_PIN,LED2_PIN,LED3_PIN,LED4_PIN,LED5_PIN};
 
-//Botón de función
-unsigned long debounceTimer = millis();
-byte debounceDelay = 50;
-byte function = 1; //1 medidor de gas 
-                  // 2 medición de agua
-
 void gasInterrupt(){
-  isGasactivated = true;
+  unsigned long currentISRtime = millis ();
+  if (currentISRtime - lastIRStime > IRSdelay)
+  { 
+    lastIRStime = currentIRStime;
+    if(isGasactivated)
+      isGasactivated = false;
+    else
+      isGasactivated = true;
+  }
 }
 
 double calculateWaterLevel(){
+
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(DIGITAL_GAS_PIN,INPUT);
   pinMode(BUZZER_PIN,OUTPUT);
-  for (i=0;i<5;i++)
+  for (int i=0;i<5;i++)
     pinMode(ledArray[i],OUTPUT);
   pinMode(FUNCTION_PIN,INPUT_PULLUP);
   digitalWrite(BUZZER_PIN,LOW);
@@ -54,24 +61,22 @@ void setup() {
 
 void loop() {
   unsigned long timeNow = millis();
-  //leer estado de botón
-  if (debounceTimer - timeNow > debounceDelay){
-    if(digitalRead(FUNCTION_PIN) == LOW){
-      debounceTimer += debounceDelay;
-    }
-  }
-
-  if(isGasactivated){
+  
   //Función detector de gas
-    if(timeNow - gasTimerStart > gasTimerDelay){
-      gasTimerStart += gasTimerDelay;
-      int gasLevel = analogRead(ANALOG_GAS_PIN);
+  if(isGasactivated){
+    if(lastGasState != isGasactivated){
+      lastGasState = isGasactivated;
+      for 
+    }
+
+    if(timeNow - gasTimer > gasDelay){
+      gasTimer = timeNow;
       digitalGasState = digitalRead(DIGITAL_GAS_PIN);
-      digitalWrite(LED_BUILTIN,digitalGasState);
       digitalWrite(BUZZER_PIN,digitalGasState);
     }
   }
   else {
+    lastGasState = false;
   //Función medidor de tanque de agua
   }
 }
