@@ -58,24 +58,6 @@ void loop() {
   if (debounceTimer - timeNow > debounceDelay){
     if(digitalRead(FUNCTION_PIN) == LOW){
       debounceTimer += debounceDelay;
-      if(function == 1){
-        function++;
-        oledScreen.clearDisplay();
-        oledScreen.setTextSize(2);
-        oledScreen.setCursor(30,12); 
-        oledScreen.print("Agua");
-        oledScreen.display();
-        delay(1000);
-      }
-      else{
-        function = 1;
-        oledScreen.clearDisplay();
-        oledScreen.setTextSize(2);
-        oledScreen.setCursor(30,12); 
-        oledScreen.print("Gas");
-        oledScreen.display();
-        delay(1000);
-      }
     }
   }
 
