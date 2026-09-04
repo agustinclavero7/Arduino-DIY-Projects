@@ -54,7 +54,9 @@ void gasInterrupt(){
 
 void getPressure(){
   int adc = analogRead(PRESSURE_SENSOR_PIN);
-  kPa = (adc/1023 -0.04) / 0.09;
+  kPa = (adc/1023.0 - 0.04) / 0.09;
+  Serial.println(kPa);
+
 }
 
 void calculateWaterLevel(){
@@ -108,7 +110,6 @@ void loop() {
       getPressure();
       calculateWaterLevel();
       showLedsLevel();
-
     }
   }
 }
