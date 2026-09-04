@@ -1,7 +1,9 @@
 #define WATERTANK_WIDTH  67.0
 #define WATERTANK_DEPTH  70.0
 #define WATERTANK_HEIGHT 28.0
-#define CM3_TO_L         0.001
+#define KPA_TO_CM        10.193
+#define Z0               0    //height offset
+#define NUMBER_OF_LEDS   5
 
 #define PRESSURE_SENSOR_PIN A0
 #define DIGITAL_GAS_PIN     3
@@ -13,8 +15,8 @@
 #define LED4_PIN            9
 #define LED5_PIN            10
 
-#define LEVEL_5   
-#define LEVEL_4
+#define LEVEL_5  130 
+#define LEVEL_4  110
 #define LEVEL_3  98.5
 #define LEVEL_2  65.5
 #define LEVEL_1  32.8
@@ -26,21 +28,22 @@ volatile bool isGasactivated = false;
 bool lastGasState = false;
 
 //Nivel de agua
-int ledArray [5] ={LED1_PIN,LED2_PIN,LED3_PIN,LED4_PIN,LED5_PIN};
+int ledArray [NUMBER_OF_LEDS] = {LED1_PIN,LED2_PIN,LED3_PIN,LED4_PIN,LED5_PIN};
+int levels [NUMBER_OF_LEDS] = {LEVEL_1,LEVEL_2,LEVEL_3,LEVEL_4,LEVEL_5};
+int ledsOn [NUMBER_OF_LEDS][NUMBER_OF_LEDS] = {{1,0,0,0,0},{1,1,0,0,0},{1,1,1,0,0},{1,1,1,1,0},{1,1,1,1,1}};
 double kPa = 0;
-double cmH2O = 0;
+double waterHeight = 0;
 
 //Timers
 unsigned long gasTimer = 0;
 int gasDelay = 30000;
 unsigned long waterTimer = 0;
-int waterDelay = 50000;
+int waterDelay = 10000;
 
 
 void gasInterrupt(){
-  unsigned long currentISRtime = millis ();
-  if (currentISRtime - lastIRStime > IRSdelay)
-  { 
+  unsigned long currentIRStime = millis ();
+  if (currentIRStime - lastIRStime > IRSdelay){ 
     lastIRStime = currentIRStime;
     if(isGasactivated)
       isGasactivated = false;
@@ -51,15 +54,23 @@ void gasInterrupt(){
 
 void getPressure(){
   int adc = analogRead(PRESSURE_SENSOR_PIN);
-  kpa = (adc/1023 -0.04) / 0.09;
-
+  kPa = (adc/1023 -0.04) / 0.09;
 }
-void calculateWaterLevel(){
 
+void calculateWaterLevel(){
+  waterHeight = kPa * KPA_TO_CM;
+  waterHeight += Z0;
+  Serial.println(waterHeight);
 }
 
 void showLedsLevel(){
+  int fila = 0;
+  for(int i= 1; i<NUMBER_OF_LEDS; i++)
+    if(waterHeight >= levels[i])
+      fila++;
 
+  for(int j=0; j< NUMBER_OF_LEDS; j++)
+    digitalWrite(ledArray[j],ledsOn[fila][j]);
 }
 
 void setup() {
@@ -67,7 +78,7 @@ void setup() {
   pinMode(DIGITAL_GAS_PIN,INPUT);
   pinMode(BUZZER_PIN,OUTPUT);
   analogReference(EXTERNAL);
-  for (int i=0;i<5;i++)
+  for (int i=0;i<NUMBER_OF_LEDS;i++)
     pinMode(ledArray[i],OUTPUT);
   pinMode(FUNCTION_PIN,INPUT_PULLUP);
   digitalWrite(BUZZER_PIN,LOW);
@@ -82,13 +93,11 @@ void loop() {
     //Función detector de gas
     if(lastGasState != isGasactivated){
       lastGasState = isGasactivated;
-      for 
     }
 
     if(timeNow - gasTimer > gasDelay){
       gasTimer = timeNow;
-      digitalGasState = digitalRead(DIGITAL_GAS_PIN);
-      digitalWrite(BUZZER_PIN,digitalGasState);
+      digitalWrite(BUZZER_PIN,digitalRead(DIGITAL_GAS_PIN));
     }
   }
   else {
