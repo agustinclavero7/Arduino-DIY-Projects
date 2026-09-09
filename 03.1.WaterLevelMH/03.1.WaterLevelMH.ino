@@ -6,14 +6,14 @@
 #define NUMBER_OF_LEDS   5
 
 #define PRESSURE_SENSOR_PIN A0
-#define DIGITAL_GAS_PIN     3
-#define BUZZER_PIN          4
-#define FUNCTION_PIN        5
-#define LED1_PIN            6     
-#define LED2_PIN            7
+#define DIGITAL_GAS_PIN     12
+#define BUZZER_PIN          11
+#define FUNCTION_PIN        2
+#define LED1_PIN            10    
+#define LED2_PIN            9
 #define LED3_PIN            8
-#define LED4_PIN            9
-#define LED5_PIN            10
+#define LED4_PIN            7
+#define LED5_PIN            6
 
 #define LEVEL_5  130 
 #define LEVEL_4  110
