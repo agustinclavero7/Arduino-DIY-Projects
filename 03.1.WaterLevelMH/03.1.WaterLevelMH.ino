@@ -23,7 +23,7 @@
 
 //Gas sensor
 unsigned long lastIRStime = 0;
-int IRSdelay = 25;
+int IRSdelay = 200;
 volatile bool isGasactivated = false;
 bool lastGasState = false;
 
@@ -38,12 +38,12 @@ double waterHeight = 0;
 unsigned long gasTimer = 0;
 int gasDelay = 30000;
 unsigned long waterTimer = 0;
-int waterDelay = 10000;
+int waterDelay = 1000;
 
 
 void gasInterrupt(){
   unsigned long currentIRStime = millis ();
-  if (currentIRStime - lastIRStime > IRSdelay){ 
+  if (currentIRStime - lastIRStime > IRSdelay){
     lastIRStime = currentIRStime;
     if(isGasactivated)
       isGasactivated = false;
@@ -75,6 +75,14 @@ void showLedsLevel(){
     digitalWrite(ledArray[j],ledsOn[fila][j]);
 }
 
+void gasModeOn(){
+  for (int i=0; i<5; i++)
+    digitalWrite(ledArray[i],LOW);
+  digitalWrite(BUZZER_PIN,HIGH);
+  delay(500);
+  digitalWrite(BUZZER_PIN,LOW);
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(DIGITAL_GAS_PIN,INPUT);
@@ -95,6 +103,7 @@ void loop() {
     //Función detector de gas
     if(lastGasState != isGasactivated){
       lastGasState = isGasactivated;
+      gasModeOn();
     }
 
     if(timeNow - gasTimer > gasDelay){
