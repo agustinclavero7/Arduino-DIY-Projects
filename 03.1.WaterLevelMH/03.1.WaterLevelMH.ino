@@ -15,11 +15,11 @@
 #define LED4_PIN            7
 #define LED5_PIN            6
 
-#define LEVEL_5  130 
-#define LEVEL_4  110
-#define LEVEL_3  98.5
-#define LEVEL_2  65.5
-#define LEVEL_1  32.8
+#define LEVEL_5  16.5
+#define LEVEL_4  16
+#define LEVEL_3  14
+#define LEVEL_2  12
+#define LEVEL_1  10
 
 //Gas sensor
 unsigned long lastIRStime = 0;
@@ -29,14 +29,14 @@ bool lastGasState = false;
 
 //Nivel de agua
 int ledArray [NUMBER_OF_LEDS] = {LED1_PIN,LED2_PIN,LED3_PIN,LED4_PIN,LED5_PIN};
-int levels [NUMBER_OF_LEDS] = {LEVEL_1,LEVEL_2,LEVEL_3,LEVEL_4,LEVEL_5};
-int ledsOn [NUMBER_OF_LEDS][NUMBER_OF_LEDS] = {{1,0,0,0,0},{1,1,0,0,0},{1,1,1,0,0},{1,1,1,1,0},{1,1,1,1,1}};
+double levels [NUMBER_OF_LEDS] = {LEVEL_1,LEVEL_2,LEVEL_3,LEVEL_4,LEVEL_5};
+int ledsOn [NUMBER_OF_LEDS][NUMBER_OF_LEDS] = {{1,0,0,0,0},{0,1,0,0,0},{0,0,1,0,0},{0,0,0,1,0},{0,0,0,0,1}};
 double kPa = 0;
 double waterHeight = 0;
 
 //Timers
 unsigned long gasTimer = 0;
-int gasDelay = 30000;
+int gasDelay = 1000;
 unsigned long waterTimer = 0;
 int waterDelay = 1000;
 
@@ -78,9 +78,9 @@ void showLedsLevel(){
 void gasModeOn(){
   for (int i=0; i<5; i++)
     digitalWrite(ledArray[i],LOW);
-  digitalWrite(BUZZER_PIN,HIGH);
-  delay(500);
-  digitalWrite(BUZZER_PIN,LOW);
+  analogWrite(BUZZER_PIN,250);
+  delay(1000);
+  analogWrite(BUZZER_PIN,0);
 }
 
 void setup() {
@@ -108,7 +108,8 @@ void loop() {
 
     if(timeNow - gasTimer > gasDelay){
       gasTimer = timeNow;
-      digitalWrite(BUZZER_PIN,digitalRead(DIGITAL_GAS_PIN));
+      while(digitalRead(DIGITAL_GAS_PIN) == LOW)
+       analogWrite(BUZZER_PIN,250);
     }
   }
   else {
