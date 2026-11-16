@@ -2,7 +2,7 @@
 #define WATERTANK_DEPTH  70.0
 #define WATERTANK_HEIGHT 28.0
 #define KPA_TO_CM        10.193
-#define Z0               0    //height offset
+#define Z0               1    //height offset
 #define NUMBER_OF_LEDS   5
 
 #define PRESSURE_SENSOR_PIN A0
@@ -15,11 +15,11 @@
 #define LED4_PIN            7
 #define LED5_PIN            6
 
-#define LEVEL_5  16.5
-#define LEVEL_4  16
-#define LEVEL_3  14
-#define LEVEL_2  12
-#define LEVEL_1  10
+#define LEVEL_5  25
+#define LEVEL_4  20
+#define LEVEL_3  15
+#define LEVEL_2  10
+#define LEVEL_1  5
 
 //Gas sensor
 unsigned long lastIRStime = 0;
