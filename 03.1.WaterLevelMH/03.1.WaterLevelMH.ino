@@ -61,7 +61,7 @@ void getPressure(){
 
 void calculateWaterLevel(){
   waterHeight = kPa * KPA_TO_CM;
-  waterHeight += Z0;
+  waterHeight += Z0 - 5.6;
   Serial.println(waterHeight);
 }
 
